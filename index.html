@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>交易模組化實實戰詳解筆記</title>
+<style>
+    :root {
+        --bg-main: #0f172a;
+        --bg-card: #1e293b;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --primary: #3b82f6;
+        --long-color: #10b981;
+        --short-color: #ef4444;
+        --warn-bg: #451a03;
+        --warn-border: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        background-color: var(--bg-main);
+        color: var(--text-main);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        padding: 20px;
+        line-height: 1.5;
+    }
+    .slide-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    .slide {
+        background-color: var(--bg-card);
+        border-radius: 16px;
+        padding: 40px;
+        margin-bottom: 40px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        border: 1px solid #334155;
+    }
+    .slide-header {
+        border-bottom: 3px solid var(--primary);
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    /* 大字體優化 */
+    h1 { font-size: 2.5rem; color: #fff; text-align: center; margin-bottom: 10px; }
+    h2 { font-size: 2.2rem; color: #f1f5f9; }
+    h3 { font-size: 1.6rem; color: #cbd5e1; margin-top: 15px; }
+    p, li { font-size: 1.35rem; color: #e2e8f0; margin-bottom: 10px; }
+    ul, ol { padding-left: 30px; margin-bottom: 20px; }
+    li { margin-bottom: 12px; }
+    
+    .badge {
+        font-size: 1.1rem;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: bold;
+        background-color: var(--primary);
+        color: white;
+    }
+    .badge-long { background-color: var(--long-color); }
+    .badge-short { background-color: var(--short-color); }
+    
+    /* 核心視覺化圖表結構 */
+    .chart-container {
+        background: #020617;
+        border: 2px solid #334155;
+        border-radius: 12px;
+        padding: 25px;
+        margin: 20px 0;
+        font-family: monospace;
+        position: relative;
+    }
+    .chart-line {
+        display: flex;
+        align-items: center;
+        margin: 15px 0;
+        height: 35px;
+    }
+    .line-label {
+        width: 220px;
+        font-size: 1.25rem;
+        font-weight: bold;
+        padding: 4px 10px;
+        border-radius: 4px;
+        text-align: right;
+        margin-right: 15px;
+    }
+    .line-axis {
+        flex-grow: 1;
+        height: 4px;
+        background: #475569;
+        position: relative;
+    }
+    .line-axis::after {
+        content: '';
+        position: absolute;
+        right: 0; top: -4px;
+        width: 12px; height: 12px;
+        border-radius: 50%;
+        background: #64748b;
+    }
+    .line-tag {
+        margin-left: 15px;
+        font-size: 1.15rem;
+        padding: 2px 10px;
+        border-radius: 4px;
+    }
+    
+    /* 圖表標籤顏色 */
+    .lbl-h { background-color: #7f1d1d; color: #fca5a5; border-left: 5px solid var(--short-color); }
+    .lbl-mh { background-color: #7c2d12; color: #fdba74; border-left: 5px solid #f97316; }
+    .lbl-ml { background-color: #064e3b; color: #6ee7b7; border-left: 5px solid var(--long-color); }
+    .lbl-l { background-color: #1e3a8a; color: #93c5fd; border-left: 5px solid #3b82f6; }
+    
+    .tag-op { background: #1e293b; color: #cbd5e1; border: 1px solid #475569; }
+    
+    /* 走勢動態箭頭模擬 */
+    .wave-svg {
+        width: 100%;
+        height: 180px;
+        background: #020617;
+        border-radius: 8px;
+        margin-top: 15px;
+    }
+    
+    /* 警告與過濾卡片 */
+    .filter-card {
+        background-color: var(--warn-bg);
+        border-left: 6px solid var(--warn-border);
+        padding: 20px;
+        border-radius: 0 12px 12px 0;
+        margin: 20px 0;
+    }
+    .filter-card h4 {
+        font-size: 1.4rem;
+        color: var(--warn-border);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+    }
+    .filter-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 15px;
+    }
+    .grid-item {
+        background: rgba(255,255,255,0.05);
+        padding: 12px;
+        border-radius: 6px;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .highlight { color: #f59e0b; font-weight: bold; }
+    .pro-tip { color: #3b82f6; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div class="slide-container">
+
+    <!-- SLIDE 1: 封面 -->
+    <div class="slide" style="text-align: center; padding: 80px 40px;">
+        <p style="font-size: 1.8rem; color: var(--primary); font-weight: bold; letter-spacing: 2px;">實盤對鎖必備精確指南</p>
+        <h1 style="font-size: 3.5rem; margin: 20px 0;">模組化交易防守與過濾系統</h1>
+        <div style="width: 120px; height: 5px; background: var(--primary); margin: 30px auto;"></div>
+        <p style="font-size: 1.5rem; color: var(--text-muted);">融合：防守位標記、美盤回調過濾、關盤過濾規則</p>
+        <p style="font-size: 1.2rem; color: var(--text-muted); margin-top: 50px;">參考文件：交易注意事項.txt & [2]模組筆記2026_260126_105612.pdf</p>
+    </div>
+
+    <!-- SLIDE 2: 每日交易標準 SOP -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2>🛠️ 每日開盤標準流程 (SOP)</h2>
+            <span class="badge">步驟 1 - 4</span>
+        </div>
+        <ol>
+            <li><span class="pro-tip">盤前防守標記 (06:00 前)</span>：標記突破口防守位，計算平均 5 日波幅 10% 劃分損益理想區。若關盤價離突破口太近，直接標記不參考做止損[cite: 1]。</li>
+            <li><span class="pro-tip">成本與掛單 (06:00 後)</span>：寫計畫時就要先算好每單資金成本。沒空看盤預掛單，有空看盤設到價提醒。掛單最優時間為 06:00 開盤後[cite: 1]。</li>
+            <li><span class="pro-tip">持倉調整規則</span>：進場後按計畫進行「類保本（部分平倉）」。嚴禁無計畫干預（嚴禁隨意改動設定、因害怕未達利潤全出場、梭哈重倉、盯盤亂操作）[cite: 1]。</li>
+        </ol>
+        <div class="filter-card" style="background-color: #1e1b4b; border-left-color: #6366f1;">
+            <h4>💡 核心目的提示</h4>
+            <p style="font-size: 1.25rem; margin: 0;">「一天多空各給一個策略機會嘗試的目的是避免主觀交易，以及避免高頻操作導致心態失衡。」[cite: 1]</p>
+        </div>
+    </div>
+
+    <!-- SLIDE 3: 上漲 B1 模組 -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2>⭐️ 上漲 B1 模組（前日單邊大漲）</h2>
+            <span class="badge badge-long">4 個核心策略</span>
+        </div>
+        
+        <!-- 結構圖解 -->
+        <div class="chart-container">
+            <div class="chart-line">
+                <div class="line-label lbl-h">突破口高點 (H)</div>
+                <div class="line-axis"></div>
+                <div class="line-tag tag-op">策略 1 空 / 策略 2 追多 / 策略 3 轉空</div>
+            </div>
+            <div style="height: 60px; border-left: 3px dashed #64748b; margin-left: 110px; position: relative;">
+                <span style="position: absolute; left: 15px; top: 15px; color: #64748b; font-size: 1.2rem;">⚡ 日內下跌一段 (出轉多訊號直接做多)</span>
+            </div>
+            <div class="chart-line">
+                <div class="line-label lbl-l">突破口低點 (L)</div>
+                <div class="line-axis" style="background: #1e293b;"></div>
+                <div class="line-tag tag-op">策略 4 轉多 (💡不必破此低點)</div>
+            </div>
+        </div>
+
+        <ul>
+            <li><span class="highlight">策略 1：</span>不破突破口高點空單 ✅</li>
+            <li><span class="highlight">策略 2：</span>破突破口高點出〔起漲點〕多單 ✅</li>
+            <li><span class="highlight">策略 3：</span>破突破口高點出轉空訊號+收下空單 ✅</li>
+            <li><span class="highlight">策略 4：</span><span class="pro-tip">核心特點！</span>日內下跌一段出轉多訊號+收上多單（<span class="highlight">不必破突破口低點</span>） ✅[cite: 2]</li>
+        </ul>
+
+        <!-- 增補細節 -->
+        <div class="filter-card">
+            <h4>⚠️ 上漲 B1 實戰無效止損與過濾規則 (重要)</h4>
+            <ol style="font-size: 1.2rem; margin-top: 5px;">
+                <li><span class="highlight">關盤價太近：</span>關盤價距離突破口高點在 <span class="highlight">2美金內</span>，容易掃盤，<span class="highlight">不參考做止損，也不參考起漲點</span>[cite: 2]。</li>
+                <li><span class="highlight">最後一根特徵：</span>關盤最後一根棒線是突破口高點，亦不參考做止損[cite: 2]。</li>
+                <li><span class="highlight">早盤 H1 探盤：</span>關盤價在防守位領域 10% 內，若第一根 H1 收盤前破突破口則不做；探完不破才可評估布局[cite: 2]。</li>
+                <li><span class="highlight">訊號先後：</span>必須上漲破突破口高點後，才能參考轉空訊號做空單止損[cite: 2]。</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- SLIDE 4: 下跌 B1 模組 -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2>⭐️ 下跌 B1 模組（前日單邊大跌）</h2>
+            <span class="badge badge-short">4 個核心策略</span>
+        </div>
+        
+        <!-- 結構圖解 -->
+        <div class="chart-container">
+            <div class="chart-line">
+                <div class="line-label lbl-h">突破口高點 (H)</div>
+                <div class="line-axis" style="background: #1e293b;"></div>
+                <div class="line-tag tag-op">策略 3 轉空 (💡不必破此高點)</div>
+            </div>
+            <div style="height: 60px; border-left: 3px dashed #64748b; margin-left: 110px; position: relative;">
+                <span style="position: absolute; left: 15px; top: 15px; color: #64748b; font-size: 1.2rem;">⚡ 日內上漲一段 (出轉空訊號直接做空)</span>
+            </div>
+            <div class="chart-line">
+                <div class="line-label lbl-l">突破口低點 (L)</div>
+                <div class="line-axis"></div>
+                <div class="line-tag tag-op">策略 1 多 / 策略 2 追空 / 策略 4 轉多</div>
+            </div>
+        </div>
+
+        <ul>
+            <li><span class="highlight">策略 1：</span>不破突破口低點多單 ✅</li>
+            <li><span class="highlight">策略 2：</span>破突破口低點出〔起跌點〕空單 ✅</li>
+            <li><span class="highlight">策略 3：</span><span class="pro-tip">核心特點！</span>日內上漲一段出轉空訊號+收下空單（<span class="highlight">不必破突破口高點</span>） ✅[cite: 2]</li>
+            <li><span class="highlight">策略 4：</span>下跌破突破口低點後出轉多訊號+收上多單 ✅</li>
+        </ul>
+
+        <!-- 增補細節 -->
+        <div class="filter-card">
+            <h4>⚠️ 下跌 B1 實戰無效止損與過濾規則 (重要)</h4>
+            <ol style="font-size: 1.2rem; margin-top: 5px;">
+                <li><span class="highlight">關盤價太近：</span>關盤價距離突破口低點在 <span class="highlight">2美金內</span>，容易掃盤，<span class="highlight">不參考做止損，也不參考起跌點</span>[cite: 2]。</li>
+                <li><span class="highlight">最後一根特徵：</span>關盤最後一根是突破口低點，不參考做止損[cite: 2]。</li>
+                <li><span class="highlight">早盤 H1 探盤：</span>關盤價在防守領域 10% 內，先留意一早第一根 H1 試探情況，收盤前破則不進場[cite: 2]。</li>
+                <li><span class="highlight">訊號先後：</span>必須下跌破突破口低點後，才能參考轉多訊號做多單止損[cite: 2]。</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- SLIDE 5: 上漲 B2 模組 -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2>⭐️ 標準上漲 B2 模組（有美盤回調）</h2>
+            <span class="badge badge-long">6 個標準策略</span>
+        </div>
+        <p class="pro-tip">💡 美盤回調定義：回調時間超過 4 小時，且回調幅度超過日波幅 20% (不可低於 6 美金)[cite: 2]。</p>
+
+        <!-- B2 結構圖解 -->
+        <div class="chart-container">
+            <div class="chart-line">
+                <div class="line-label lbl-h">突破口高點 (H)</div>
+                <div class="line-axis"></div>
+                <div class="line-tag tag-op">1.不破空 / 3.破位追多 / 5.假突破轉空</div>
+            </div>
+            <div style="height: 50px; background: rgba(59, 130, 246, 0.05); margin: 5px 0; border-left: 4px solid var(--primary); padding-left: 15px; display:flex; align-items:center;">
+                <span style="color: var(--text-muted); font-size:1.1rem;">長方形色塊輔助篩選領域 (領域未重疊)</span>
+            </div>
+            <div class="chart-line">
+                <div class="line-label lbl-ml">美盤回調低點 (ML)</div>
+                <div class="line-axis"></div>
+                <div class="line-tag tag-op">2.不破多 / 4.破位追空 / 6.假跌破轉多</div>
+            </div>
+        </div>
+
+        <div class="filter-grid">
+            <div class="grid-item">
+                <span class="highlight">策略 1 & 2 (區間防守)</span><br>
+                1. 不破突破口高點空單<br>
+                2. 不破美盤回調低點多單
+            </div>
+            <div class="grid-item">
+                <span class="highlight">策略 3 & 4 (破位順勢)</span><br>
+                3. 破突破口高點出〔起漲點〕多單<br>
+                4. 破美盤回調低點出〔小起跌點〕空單
+            </div>
+            <div class="grid-item" style="grid-column: span 2;">
+                <span class="highlight">策略 5 & 6 (反轉訊號)</span><br>
+                5. 上漲破突破口高點後，出轉空訊號 + 收下空單<br>
+                6. 下鐵破美盤回調低點後，出轉多訊號 + 收上多單
+            </div>
+        </div>
+
+        <div class="filter-card">
+            <h4>⚠️ 上漲 B2 實戰過濾：何時「不參考」止損？</h4>
+            <p style="font-size: 1.2rem;">• <span class="highlight">未破位前不參考：</span>突破口高點或美盤回調低點未破位之前，不參考反轉訊號做 S.L.[cite: 2]。</p>
+            <p style="font-size: 1.2rem;">• <span class="highlight">無效 ML 止損：</span>若<span class="highlight">突破口高點同時也是轉空訊號</span>，此美盤回調低點極易破位，<span class="highlight">不參考 ML 做止損</span>[cite: 2]。</p>
+            <p style="font-size: 1.2rem;">• <span class="highlight">距離過近過濾：</span>開盤價距高點太近(2美金內)不參考起漲點；關盤價距 ML 太近(2美金內)不參考小起跌點[cite: 2]。</p>
+        </div>
+    </div>
+
+    <!-- SLIDE 6: 下跌 B2 模組 -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2>⭐️ 標準下跌 B2 模組（有美盤回調）</h2>
+            <span class="badge badge-short">6 個標準策略</span>
+        </div>
+        <p class="pro-tip">💡 美盤回調定義：回調時間超過 4 小時，且回調幅度超過日波幅 20% (不可低於 6 美金)[cite: 2]。</p>
+
+        <!-- B2 下跌結構圖解 -->
+        <div class="chart-container">
+            <div class="chart-line">
+                <div class="line-label lbl-mh">美盤回調高點 (MH)</div>
+                <div class="line-axis"></div>
+                <div class="line-tag tag-op">2.不破空 / 4.破位追多 / 5.假突破轉空</div>
+            </div>
+            <div style="height: 50px; background: rgba(59, 130, 246, 0.05); margin: 5px 0; border-left: 4px solid var(--primary); padding-left: 15px; display:flex; align-items:center;">
+                <span style="color: var(--text-muted); font-size:1.1rem;">長方形色塊輔助篩選領域 (領域未重疊)</span>
+            </div>
+            <div class="chart-line">
+                <div class="line-label lbl-l">突破口低點 (L)</div>
+                <div class="line-axis"></div>
+                <div class="line-tag tag-op">1.不破多 / 3.破位追空 / 6.假跌破轉多</div>
+            </div>
+        </div>
+
+        <div class="filter-grid">
+            <div class="grid-item">
+                <span class="highlight">策略 1 & 2 (區間防守)</span><br>
+                1. 不破突破口低點多單<br>
+                2. 不破美盤回調高點空單
+            </div>
+            <div class="grid-item">
+                <span class="highlight">策略 3 & 4 (破位順勢)</span><br>
+                3. 破突破口低點出〔起跌點〕空單<br>
+                4. 破美盤回調高點出〔小起漲點〕多單
+            </div>
+        </div>
+
+        <div class="filter-card">
+            <h4>⚠️ 下跌 B2 實戰過濾規則</h4>
+            <p style="font-size: 1.2rem;">• <span class="highlight">未破位前不參考：</span>突破口低點或美盤回調高點未破位之前，不參考反轉訊號做 S.L.[cite: 2]。</p>
+            <p style="font-size: 1.2rem;">• <span class="highlight">無效 MH 止損：</span>若<span class="highlight">突破口低點同時也是轉多訊號</span>，此美盤回調高點極易破位，<span class="highlight">不參考 MH 做止損</span>[cite: 2]。</p>
+            <p style="font-size: 1.2rem;">• <span class="highlight">開盤價位置：</span>開盤在領域邊緣，一早試探不破突破口可布局；開盤在領域內，先看第一根 H1 試探不破才可布局[cite: 2]。</p>
+        </div>
+    </div>
+
+    <!-- SLIDE 7: 特殊震盪 V 型模組 & 深度回調 -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2>📌 特殊震盪 V 型模組 & 深度回調</h2>
+            <span class="badge" style="background-color: #8b5cf6;">特殊變體</span>
+        </div>
+        <p class="highlight">🌼 V型特色：1. 上漲與下跌波幅差不多。 2. 前一天震盪掃盤[cite: 1]。</p>
+        
+        <div class="filter-grid" style="margin-bottom: 20px;">
+            <div class="grid-item">漲跌幅對等，圍繞【突破口高低點】規劃 6 策略：<br>1. 高點不破空 / 2. 低點不破多<br>3. 破高追多 / 4. 破低追空<br>5. 破高轉空訊號空 / 6. 破低轉多訊號多[cite: 1]</div>
+            <div class="grid-item" style="background: #2e1065;">
+                <span class="highlight">💡 深度回調特例 (新版對齊)</span><br>
+                • <span class="pro-tip">領域未重疊：</span>只參考突破口高點與突破口低點做止損[cite: 2]。<br>
+                • <span class="pro-tip">領域重疊 (H & MH 距離太近)：</span>看開盤表現，若關盤在領域內，<span class="highlight">止損直接設計在最高點 (H)</span>[cite: 2]。
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 8: 亞盤結束時間節點防守 -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2>⏰ 觀盤時間節點與特殊開盤 K 線</h2>
+            <span class="badge">時間截點防守</span>
+        </div>
+        
+        <div class="filter-card" style="background-color: #020617; border-left-color: #10b981; margin-bottom: 25px;">
+            <h4>🔥 隔日開盤「第一根 K 線」特殊撿錢訊號</h4>
+            <p style="font-size: 1.3rem;">• <span class="highlight">前日上漲 B1 漲到關盤</span> (突破口高點為最後一根)：隔日開盤若第一根直接出<span class="pro-tip">轉空訊號</span>，可直接參考進場[cite: 2]。</p>
+            <p style="font-size: 1.3rem;">• <span class="highlight">前日下跌 B1 跌到關盤</span> (突破口低點為最後一根)：隔日開盤若第一根直接出<span class="pro-tip">轉多訊號</span>，可直接參考進場[cite: 2]。</p>
+        </div>
+
+        <h3 style="margin-bottom: 15px;">🔔 亞盤結束 (14:00 / 18:00 / 22:00) 走勢總結與標記[cite: 1]</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 1.3rem; text-align: left;">
+            <thead>
+                <tr style="background-color: #334155; color: white;">
+                    <th style="padding: 12px; border: 1px solid #475569;">亞盤結束狀態</th>
+                    <th style="padding: 12px; border: 1px solid #475569;">標記與應對策略</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #475569; color: var(--long-color);">呈現完全上漲 📈</td>
+                    <td style="padding: 12px; border: 1px solid #475569;">僅注意標註<span class="highlight">亞盤低點</span>即可（因距離高點太近，歐盤可能延續突破）[cite: 1]。</td>
+                </tr>
+                <tr style="background-color: rgba(255,255,255,0.02);">
+                    <td style="padding: 12px; border: 1px solid #475569; color: var(--short-color);">呈現完全下跌 📉</td>
+                    <td style="padding: 12px; border: 1px solid #475569;">僅注意標記<span class="highlight">亞盤高點</span>即可（因距離低點太近，歐盤可能延續突破）[cite: 1]。</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #475569;">無明顯方向 (夾在中間)</td>
+                    <td style="padding: 12px; border: 1px solid #475569;">高低點都標註，密切注意歐盤走向的試探情況[cite: 1]。</td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="margin-top: 15px; font-size: 1.25rem;" class="pro-tip">※ 變通對鎖機會：當天若無標準突破口策略，可在時間鐘響時，評估亞盤高低點是否「明顯被試探而不破」，利用盤勢轉換習性進場做反向單對鎖[cite: 1]。</p>
+    </div>
+
+</div>
+
+</body>
+</html>
