@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>交易模組化實實戰詳解筆記</title>
+<title>交易模組化筆記</title>
 <style>
     :root {
         --bg-main: #0f172a;
@@ -167,7 +167,6 @@
         <h1 style="font-size: 3.5rem; margin: 20px 0;">模組化交易防守與過濾系統</h1>
         <div style="width: 120px; height: 5px; background: var(--primary); margin: 30px auto;"></div>
         <p style="font-size: 1.5rem; color: var(--text-muted);">融合：防守位標記、美盤回調過濾、關盤過濾規則</p>
-        <p style="font-size: 1.2rem; color: var(--text-muted); margin-top: 50px;">參考文件：交易注意事項.txt & [2]模組筆記2026_260126_105612.pdf</p>
     </div>
 
     <!-- SLIDE 2: 每日交易標準 SOP -->
@@ -177,13 +176,13 @@
             <span class="badge">步驟 1 - 4</span>
         </div>
         <ol>
-            <li><span class="pro-tip">盤前防守標記 (06:00 前)</span>：標記突破口防守位，計算平均 5 日波幅 10% 劃分損益理想區。若關盤價離突破口太近，直接標記不參考做止損[cite: 1]。</li>
-            <li><span class="pro-tip">成本與掛單 (06:00 後)</span>：寫計畫時就要先算好每單資金成本。沒空看盤預掛單，有空看盤設到價提醒。掛單最優時間為 06:00 開盤後[cite: 1]。</li>
-            <li><span class="pro-tip">持倉調整規則</span>：進場後按計畫進行「類保本（部分平倉）」。嚴禁無計畫干預（嚴禁隨意改動設定、因害怕未達利潤全出場、梭哈重倉、盯盤亂操作）[cite: 1]。</li>
+            <li><span class="pro-tip">盤前防守標記 (06:00 前)</span>：標記突破口防守位，計算平均 5 日波幅 10% 劃分損益理想區。若關盤價離突破口太近，直接標記不參考做止損。</li>
+            <li><span class="pro-tip">成本與掛單 (06:00 後)</span>：寫計畫時就要先算好每單資金成本。沒空看盤預掛單，有空看盤設到價提醒。掛單最優時間為 06:00 開盤後。</li>
+            <li><span class="pro-tip">持倉調整規則</span>：進場後按計畫進行「類保本（部分平倉）」。嚴禁無計畫干預（嚴禁隨意改動設定、因害怕未達利潤全出場、梭哈重倉、盯盤亂操作）。</li>
         </ol>
         <div class="filter-card" style="background-color: #1e1b4b; border-left-color: #6366f1;">
             <h4>💡 核心目的提示</h4>
-            <p style="font-size: 1.25rem; margin: 0;">「一天多空各給一個策略機會嘗試的目的是避免主觀交易，以及避免高頻操作導致心態失衡。」[cite: 1]</p>
+            <p style="font-size: 1.25rem; margin: 0;">「一天多空各給一個策略機會嘗試的目的是避免主觀交易，以及避免高頻操作導致心態失衡。」</p>
         </div>
     </div>
 
@@ -215,17 +214,17 @@
             <li><span class="highlight">策略 1：</span>不破突破口高點空單 ✅</li>
             <li><span class="highlight">策略 2：</span>破突破口高點出〔起漲點〕多單 ✅</li>
             <li><span class="highlight">策略 3：</span>破突破口高點出轉空訊號+收下空單 ✅</li>
-            <li><span class="highlight">策略 4：</span><span class="pro-tip">核心特點！</span>日內下跌一段出轉多訊號+收上多單（<span class="highlight">不必破突破口低點</span>） ✅[cite: 2]</li>
+            <li><span class="highlight">策略 4：</span><span class="pro-tip">核心特點！</span>日內下跌一段出轉多訊號+收上多單（<span class="highlight">不必破突破口低點</span>） ✅</li>
         </ul>
 
         <!-- 增補細節 -->
         <div class="filter-card">
             <h4>⚠️ 上漲 B1 實戰無效止損與過濾規則 (重要)</h4>
             <ol style="font-size: 1.2rem; margin-top: 5px;">
-                <li><span class="highlight">關盤價太近：</span>關盤價距離突破口高點在 <span class="highlight">2美金內</span>，容易掃盤，<span class="highlight">不參考做止損，也不參考起漲點</span>[cite: 2]。</li>
-                <li><span class="highlight">最後一根特徵：</span>關盤最後一根棒線是突破口高點，亦不參考做止損[cite: 2]。</li>
-                <li><span class="highlight">早盤 H1 探盤：</span>關盤價在防守位領域 10% 內，若第一根 H1 收盤前破突破口則不做；探完不破才可評估布局[cite: 2]。</li>
-                <li><span class="highlight">訊號先後：</span>必須上漲破突破口高點後，才能參考轉空訊號做空單止損[cite: 2]。</li>
+                <li><span class="highlight">關盤價太近：</span>關盤價距離突破口高點在 <span class="highlight">2美金內</span>，容易掃盤，<span class="highlight">不參考做止損，也不參考起漲點</span>。</li>
+                <li><span class="highlight">最後一根特徵：</span>關盤最後一根棒線是突破口高點，亦不參考做止損。</li>
+                <li><span class="highlight">早盤 H1 探盤：</span>關盤價在防守位領域 10% 內，若第一根 H1 收盤前破突破口則不做；探完不破才可評估布局。</li>
+                <li><span class="highlight">訊號先後：</span>必須上漲破突破口高點後，才能參考轉空訊號做空單止損。</li>
             </ol>
         </div>
     </div>
@@ -257,7 +256,7 @@
         <ul>
             <li><span class="highlight">策略 1：</span>不破突破口低點多單 ✅</li>
             <li><span class="highlight">策略 2：</span>破突破口低點出〔起跌點〕空單 ✅</li>
-            <li><span class="highlight">策略 3：</span><span class="pro-tip">核心特點！</span>日內上漲一段出轉空訊號+收下空單（<span class="highlight">不必破突破口高點</span>） ✅[cite: 2]</li>
+            <li><span class="highlight">策略 3：</span><span class="pro-tip">核心特點！</span>日內上漲一段出轉空訊號+收下空單（<span class="highlight">不必破突破口高點</span>） ✅</li>
             <li><span class="highlight">策略 4：</span>下跌破突破口低點後出轉多訊號+收上多單 ✅</li>
         </ul>
 
@@ -265,10 +264,10 @@
         <div class="filter-card">
             <h4>⚠️ 下跌 B1 實戰無效止損與過濾規則 (重要)</h4>
             <ol style="font-size: 1.2rem; margin-top: 5px;">
-                <li><span class="highlight">關盤價太近：</span>關盤價距離突破口低點在 <span class="highlight">2美金內</span>，容易掃盤，<span class="highlight">不參考做止損，也不參考起跌點</span>[cite: 2]。</li>
-                <li><span class="highlight">最後一根特徵：</span>關盤最後一根是突破口低點，不參考做止損[cite: 2]。</li>
-                <li><span class="highlight">早盤 H1 探盤：</span>關盤價在防守領域 10% 內，先留意一早第一根 H1 試探情況，收盤前破則不進場[cite: 2]。</li>
-                <li><span class="highlight">訊號先後：</span>必須下跌破突破口低點後，才能參考轉多訊號做多單止損[cite: 2]。</li>
+                <li><span class="highlight">關盤價太近：</span>關盤價距離突破口低點在 <span class="highlight">2美金內</span>，容易掃盤，<span class="highlight">不參考做止損，也不參考起跌點</span>。</li>
+                <li><span class="highlight">最後一根特徵：</span>關盤最後一根是突破口低點，不參考做止損。</li>
+                <li><span class="highlight">早盤 H1 探盤：</span>關盤價在防守領域 10% 內，先留意一早第一根 H1 試探情況，收盤前破則不進場。</li>
+                <li><span class="highlight">訊號先後：</span>必須下跌破突破口低點後，才能參考轉多訊號做多單止損。</li>
             </ol>
         </div>
     </div>
@@ -279,7 +278,7 @@
             <h2>⭐️ 標準上漲 B2 模組（有美盤回調）</h2>
             <span class="badge badge-long">6 個標準策略</span>
         </div>
-        <p class="pro-tip">💡 美盤回調定義：回調時間超過 4 小時，且回調幅度超過日波幅 20% (不可低於 6 美金)[cite: 2]。</p>
+        <p class="pro-tip">💡 美盤回調定義：回調時間超過 4 小時，且回調幅度超過日波幅 20% (不可低於 6 美金)。</p>
 
         <!-- B2 結構圖解 -->
         <div class="chart-container">
@@ -318,9 +317,9 @@
 
         <div class="filter-card">
             <h4>⚠️ 上漲 B2 實戰過濾：何時「不參考」止損？</h4>
-            <p style="font-size: 1.2rem;">• <span class="highlight">未破位前不參考：</span>突破口高點或美盤回調低點未破位之前，不參考反轉訊號做 S.L.[cite: 2]。</p>
-            <p style="font-size: 1.2rem;">• <span class="highlight">無效 ML 止損：</span>若<span class="highlight">突破口高點同時也是轉空訊號</span>，此美盤回調低點極易破位，<span class="highlight">不參考 ML 做止損</span>[cite: 2]。</p>
-            <p style="font-size: 1.2rem;">• <span class="highlight">距離過近過濾：</span>開盤價距高點太近(2美金內)不參考起漲點；關盤價距 ML 太近(2美金內)不參考小起跌點[cite: 2]。</p>
+            <p style="font-size: 1.2rem;">• <span class="highlight">未破位前不參考：</span>突破口高點或美盤回調低點未破位之前，不參考反轉訊號做 S.L.。</p>
+            <p style="font-size: 1.2rem;">• <span class="highlight">無效 ML 止損：</span>若<span class="highlight">突破口高點同時也是轉空訊號</span>，此美盤回調低點極易破位，<span class="highlight">不參考 ML 做止損</span>。</p>
+            <p style="font-size: 1.2rem;">• <span class="highlight">距離過近過濾：</span>開盤價距高點太近(2美金內)不參考起漲點；關盤價距 ML 太近(2美金內)不參考小起跌點。</p>
         </div>
     </div>
 
@@ -330,7 +329,7 @@
             <h2>⭐️ 標準下跌 B2 模組（有美盤回調）</h2>
             <span class="badge badge-short">6 個標準策略</span>
         </div>
-        <p class="pro-tip">💡 美盤回調定義：回調時間超過 4 小時，且回調幅度超過日波幅 20% (不可低於 6 美金)[cite: 2]。</p>
+        <p class="pro-tip">💡 美盤回調定義：回調時間超過 4 小時，且回調幅度超過日波幅 20% (不可低於 6 美金)。</p>
 
         <!-- B2 下跌結構圖解 -->
         <div class="chart-container">
@@ -364,9 +363,9 @@
 
         <div class="filter-card">
             <h4>⚠️ 下跌 B2 實戰過濾規則</h4>
-            <p style="font-size: 1.2rem;">• <span class="highlight">未破位前不參考：</span>突破口低點或美盤回調高點未破位之前，不參考反轉訊號做 S.L.[cite: 2]。</p>
-            <p style="font-size: 1.2rem;">• <span class="highlight">無效 MH 止損：</span>若<span class="highlight">突破口低點同時也是轉多訊號</span>，此美盤回調高點極易破位，<span class="highlight">不參考 MH 做止損</span>[cite: 2]。</p>
-            <p style="font-size: 1.2rem;">• <span class="highlight">開盤價位置：</span>開盤在領域邊緣，一早試探不破突破口可布局；開盤在領域內，先看第一根 H1 試探不破才可布局[cite: 2]。</p>
+            <p style="font-size: 1.2rem;">• <span class="highlight">未破位前不參考：</span>突破口低點或美盤回調高點未破位之前，不參考反轉訊號做 S.L.。</p>
+            <p style="font-size: 1.2rem;">• <span class="highlight">無效 MH 止損：</span>若<span class="highlight">突破口低點同時也是轉多訊號</span>，此美盤回調高點極易破位，<span class="highlight">不參考 MH 做止損</span>。</p>
+            <p style="font-size: 1.2rem;">• <span class="highlight">開盤價位置：</span>開盤在領域邊緣，一早試探不破突破口可布局；開盤在領域內，先看第一根 H1 試探不破才可布局。</p>
         </div>
     </div>
 
@@ -376,14 +375,14 @@
             <h2>📌 特殊震盪 V 型模組 & 深度回調</h2>
             <span class="badge" style="background-color: #8b5cf6;">特殊變體</span>
         </div>
-        <p class="highlight">🌼 V型特色：1. 上漲與下跌波幅差不多。 2. 前一天震盪掃盤[cite: 1]。</p>
+        <p class="highlight">🌼 V型特色：1. 上漲與下跌波幅差不多。 2. 前一天震盪掃盤。</p>
         
         <div class="filter-grid" style="margin-bottom: 20px;">
-            <div class="grid-item">漲跌幅對等，圍繞【突破口高低點】規劃 6 策略：<br>1. 高點不破空 / 2. 低點不破多<br>3. 破高追多 / 4. 破低追空<br>5. 破高轉空訊號空 / 6. 破低轉多訊號多[cite: 1]</div>
+            <div class="grid-item">漲跌幅對等，圍繞【突破口高低點】規劃 6 策略：<br>1. 高點不破空 / 2. 低點不破多<br>3. 破高追多 / 4. 破低追空<br>5. 破高轉空訊號空 / 6. 破低轉多訊號多</div>
             <div class="grid-item" style="background: #2e1065;">
                 <span class="highlight">💡 深度回調特例 (新版對齊)</span><br>
-                • <span class="pro-tip">領域未重疊：</span>只參考突破口高點與突破口低點做止損[cite: 2]。<br>
-                • <span class="pro-tip">領域重疊 (H & MH 距離太近)：</span>看開盤表現，若關盤在領域內，<span class="highlight">止損直接設計在最高點 (H)</span>[cite: 2]。
+                • <span class="pro-tip">領域未重疊：</span>只參考突破口高點與突破口低點做止損。<br>
+                • <span class="pro-tip">領域重疊 (H & MH 距離太近)：</span>看開盤表現，若關盤在領域內，<span class="highlight">止損直接設計在最高點 (H)</span>。
             </div>
         </div>
     </div>
@@ -397,11 +396,11 @@
         
         <div class="filter-card" style="background-color: #020617; border-left-color: #10b981; margin-bottom: 25px;">
             <h4>🔥 隔日開盤「第一根 K 線」特殊撿錢訊號</h4>
-            <p style="font-size: 1.3rem;">• <span class="highlight">前日上漲 B1 漲到關盤</span> (突破口高點為最後一根)：隔日開盤若第一根直接出<span class="pro-tip">轉空訊號</span>，可直接參考進場[cite: 2]。</p>
-            <p style="font-size: 1.3rem;">• <span class="highlight">前日下跌 B1 跌到關盤</span> (突破口低點為最後一根)：隔日開盤若第一根直接出<span class="pro-tip">轉多訊號</span>，可直接參考進場[cite: 2]。</p>
+            <p style="font-size: 1.3rem;">• <span class="highlight">前日上漲 B1 漲到關盤</span> (突破口高點為最後一根)：隔日開盤若第一根直接出<span class="pro-tip">轉空訊號</span>，可直接參考進場。</p>
+            <p style="font-size: 1.3rem;">• <span class="highlight">前日下跌 B1 跌到關盤</span> (突破口低點為最後一根)：隔日開盤若第一根直接出<span class="pro-tip">轉多訊號</span>，可直接參考進場。</p>
         </div>
 
-        <h3 style="margin-bottom: 15px;">🔔 亞盤結束 (14:00 / 18:00 / 22:00) 走勢總結與標記[cite: 1]</h3>
+        <h3 style="margin-bottom: 15px;">🔔 亞盤結束 (14:00 / 18:00 / 22:00) 走勢總結與標記</h3>
         <table style="width: 100%; border-collapse: collapse; font-size: 1.3rem; text-align: left;">
             <thead>
                 <tr style="background-color: #334155; color: white;">
@@ -412,19 +411,19 @@
             <tbody>
                 <tr>
                     <td style="padding: 12px; border: 1px solid #475569; color: var(--long-color);">呈現完全上漲 📈</td>
-                    <td style="padding: 12px; border: 1px solid #475569;">僅注意標註<span class="highlight">亞盤低點</span>即可（因距離高點太近，歐盤可能延續突破）[cite: 1]。</td>
+                    <td style="padding: 12px; border: 1px solid #475569;">僅注意標註<span class="highlight">亞盤低點</span>即可（因距離高點太近，歐盤可能延續突破）。</td>
                 </tr>
                 <tr style="background-color: rgba(255,255,255,0.02);">
                     <td style="padding: 12px; border: 1px solid #475569; color: var(--short-color);">呈現完全下跌 📉</td>
-                    <td style="padding: 12px; border: 1px solid #475569;">僅注意標記<span class="highlight">亞盤高點</span>即可（因距離低點太近，歐盤可能延續突破）[cite: 1]。</td>
+                    <td style="padding: 12px; border: 1px solid #475569;">僅注意標記<span class="highlight">亞盤高點</span>即可（因距離低點太近，歐盤可能延續突破）。</td>
                 </tr>
                 <tr>
                     <td style="padding: 12px; border: 1px solid #475569;">無明顯方向 (夾在中間)</td>
-                    <td style="padding: 12px; border: 1px solid #475569;">高低點都標註，密切注意歐盤走向的試探情況[cite: 1]。</td>
+                    <td style="padding: 12px; border: 1px solid #475569;">高低點都標註，密切注意歐盤走向的試探情況。</td>
                 </tr>
             </tbody>
         </table>
-        <p style="margin-top: 15px; font-size: 1.25rem;" class="pro-tip">※ 變通對鎖機會：當天若無標準突破口策略，可在時間鐘響時，評估亞盤高低點是否「明顯被試探而不破」，利用盤勢轉換習性進場做反向單對鎖[cite: 1]。</p>
+        <p style="margin-top: 15px; font-size: 1.25rem;" class="pro-tip">※ 變通對鎖機會：當天若無標準突破口策略，可在時間鐘響時，評估亞盤高低點是否「明顯被試探而不破」，利用盤勢轉換習性進場做反向單對鎖。</p>
     </div>
 
 </div>
