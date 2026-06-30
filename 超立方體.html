@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>四維超立方體 · Tesseract</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B0F1A;
+    --ink-2:#131A2E;
+    --line:rgba(148,163,184,.18);
+    --text:#E6EAF2;
+    --muted:#8A97AD;
+    --warm:#FF961E;   /* 近 W */
+    --cold:#22D3EE;   /* 遠 W */
+    --panel:rgba(13,18,30,.72);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;margin:0;}
+  body{
+    background:var(--ink);
+    color:var(--text);
+    font-family:"Space Grotesk",system-ui,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+    overflow:hidden;
+    position:fixed;width:100%;
+  }
+  #stage{position:absolute;inset:0;}
+  canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab;}
+  canvas:active{cursor:grabbing;}
+
+  /* 標題 */
+  .title{
+    position:absolute;top:18px;left:20px;z-index:5;pointer-events:none;
+  }
+  .title h1{
+    margin:0;font-size:15px;font-weight:700;letter-spacing:.04em;
+  }
+  .title .en{
+    font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+    letter-spacing:.32em;text-transform:uppercase;color:var(--muted);margin-top:3px;
+  }
+
+  /* W 顏色圖例 */
+  .legend{
+    position:absolute;top:20px;right:18px;z-index:5;
+    text-align:right;pointer-events:none;
+  }
+  .legend .lab{
+    font-family:"IBM Plex Mono",monospace;font-size:9.5px;
+    letter-spacing:.18em;color:var(--muted);margin-bottom:6px;
+  }
+  .legend .bar{
+    width:118px;height:7px;border-radius:4px;margin-left:auto;
+    background:linear-gradient(90deg,var(--cold),var(--warm));
+  }
+  .legend .ends{
+    display:flex;justify-content:space-between;width:118px;margin-left:auto;
+    margin-top:4px;font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--muted);
+  }
+
+  /* 控制面板 */
+  .panel{
+    position:absolute;left:50%;bottom:18px;transform:translateX(-50%);
+    z-index:6;width:min(520px,calc(100% - 24px));
+    background:var(--panel);backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    border:1px solid var(--line);border-radius:16px;
+    padding:14px 16px 16px;
+  }
+  .panel .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .panel .row + .row{margin-top:12px;}
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.2em;
+    color:var(--muted);text-transform:uppercase;margin-right:2px;flex-basis:100%;
+  }
+  .seg{display:flex;gap:6px;flex:1;}
+  .btn{
+    flex:1;min-width:0;appearance:none;border:1px solid var(--line);
+    background:transparent;color:var(--muted);
+    font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:500;
+    letter-spacing:.05em;padding:9px 4px;border-radius:10px;cursor:pointer;
+    transition:.18s ease;
+  }
+  .btn:hover{color:var(--text);border-color:rgba(148,163,184,.4);}
+  .btn.on{
+    color:#0B0F1A;background:linear-gradient(135deg,var(--warm),#fcd34d);
+    border-color:transparent;font-weight:700;
+    box-shadow:0 0 18px rgba(251,191,36,.28);
+  }
+  .icon-btn{
+    flex:0 0 auto;width:42px;height:38px;display:grid;place-items:center;
+    border:1px solid var(--line);background:transparent;border-radius:10px;
+    color:var(--text);cursor:pointer;transition:.18s ease;
+  }
+  .icon-btn:hover{border-color:rgba(148,163,184,.4);}
+  .icon-btn svg{width:16px;height:16px;}
+  .speed{display:flex;align-items:center;gap:10px;flex:1;}
+  .speed label{
+    font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;
+    color:var(--muted);white-space:nowrap;
+  }
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;flex:1;height:3px;border-radius:3px;
+    background:rgba(148,163,184,.25);outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:15px;height:15px;border-radius:50%;
+    background:var(--warm);cursor:pointer;box-shadow:0 0 10px rgba(251,191,36,.5);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:15px;height:15px;border:none;border-radius:50%;
+    background:var(--warm);cursor:pointer;
+  }
+  .hint{
+    position:absolute;left:50%;transform:translateX(-50%);
+    bottom:calc(18px + var(--panelH,150px));z-index:4;
+    font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.16em;
+    color:var(--muted);pointer-events:none;opacity:.7;text-align:center;width:100%;
+    transition:opacity .6s ease;
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="c"></canvas>
+
+  <div class="title">
+    <h1>四維超立方體</h1>
+    <div class="en">Tesseract · 4D → 3D 投影</div>
+  </div>
+
+  <div class="legend">
+    <div class="lab">第四維 W · 深度</div>
+    <div class="bar"></div>
+    <div class="ends"><span>遠</span><span>近</span></div>
+  </div>
+
+  <div class="hint" id="hint">拖曳畫面旋轉視角</div>
+
+  <div class="panel" id="panel">
+    <div class="row">
+      <span class="eyebrow">含第四維 W · 4D 翻面旋轉</span>
+      <div class="seg">
+        <button class="btn on" data-plane="xw">XW</button>
+        <button class="btn" data-plane="yw">YW</button>
+        <button class="btn" data-plane="zw">ZW</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="eyebrow">不含 W · 一般 3D 旋轉</span>
+      <div class="seg">
+        <button class="btn" data-plane="xy">XY</button>
+        <button class="btn" data-plane="xz">XZ</button>
+        <button class="btn" data-plane="yz">YZ</button>
+      </div>
+    </div>
+    <div class="row">
+      <button class="icon-btn" id="play" title="播放／暫停">
+        <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+      </button>
+      <div class="speed">
+        <label>速度</label>
+        <input type="range" id="speed" min="0" max="100" value="42">
+      </div>
+      <button class="icon-btn" id="reset" title="重設視角">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  let W=0,H=0,DPR=1;
+
+  // ---- 16 個頂點：(±1,±1,±1,±1) ----
+  const verts=[];
+  for(let i=0;i<16;i++){
+    verts.push([
+      (i&1)?1:-1,
+      (i&2)?1:-1,
+      (i&4)?1:-1,
+      (i&8)?1:-1
+    ]);
+  }
+  // ---- 邊：恰好一個座標不同 ----
+  const edges=[];
+  for(let a=0;a<16;a++){
+    for(let b=a+1;b<16;b++){
+      let diff=0; for(let k=0;k<4;k++) if(verts[a][k]!==verts[b][k]) diff++;
+      if(diff===1) edges.push([a,b]);
+    }
+  }
+
+  // ---- 顏色：依 W 映射冷暖 ----
+  const COLD=[34,211,238], WARM=[255,150,30];
+  function wColor(w){
+    let t=(w+1.5)/3; t=Math.max(0,Math.min(1,t));
+    const r=Math.round(COLD[0]+(WARM[0]-COLD[0])*t);
+    const g=Math.round(COLD[1]+(WARM[1]-COLD[1])*t);
+    const b=Math.round(COLD[2]+(WARM[2]-COLD[2])*t);
+    return `rgb(${r},${g},${b})`;
+  }
+
+  function rot(p,i,j,ang){
+    const c=Math.cos(ang),s=Math.sin(ang);
+    const a=p[i],b=p[j];
+    p[i]=a*c-b*s; p[j]=a*s+b*c;
+  }
+
+  // ---- 狀態 ----
+  const planes={xw:true,yw:false,zw:false,xy:false,xz:false,yz:false};
+  let playing=true;
+  let speed=0.42;
+  let aXW=0.6,aYW=0,aZW=0,aXY=0,aXZ=0,aYZ=0;
+  let yaw=-0.5,pitch=-0.35;        // 視角
+  let drag=false,lx=0,ly=0;
+  let last=performance.now();
+
+  function resize(){
+    DPR=Math.min(window.devicePixelRatio||1,2);
+    W=canvas.clientWidth; H=canvas.clientHeight;
+    canvas.width=W*DPR; canvas.height=H*DPR;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    const ph=document.getElementById('panel').offsetHeight;
+    document.documentElement.style.setProperty('--panelH',(ph+14)+'px');
+  }
+  window.addEventListener('resize',resize);
+
+  function project(vYaw,vPitch,ortho,cx,cy,scale){
+    const D4=2.6, D3=3.6;
+    const out=[];
+    for(const v of verts){
+      const p=[v[0],v[1],v[2],v[3]];
+      if(planes.xw) rot(p,0,3,aXW);
+      if(planes.yw) rot(p,1,3,aYW);
+      if(planes.zw) rot(p,2,3,aZW);
+      if(planes.xy) rot(p,0,1,aXY);
+      if(planes.xz) rot(p,0,2,aXZ);
+      if(planes.yz) rot(p,1,2,aYZ);
+      const wRot=p[3];
+      // 4D -> 3D（透視投影，這層是超立方體「內外套疊」外觀的來源，務必保留）
+      const k4=1/(D4-p[3]);
+      let x=p[0]*k4, y=p[1]*k4, z=p[2]*k4;
+      // 視角旋轉
+      let c=Math.cos(vYaw),s=Math.sin(vYaw);
+      let nx=x*c-z*s, nz=x*s+z*c; x=nx; z=nz;
+      c=Math.cos(vPitch); s=Math.sin(vPitch);
+      let ny=y*c-z*s; nz=y*s+z*c; y=ny; z=nz;
+      // 3D -> 2D（立體圖用透視；工程視圖用正投影，無近大遠小變形）
+      const k3=ortho?0.34:1/(D3-z);
+      out.push({x:cx+x*k3*scale, y:cy+y*k3*scale, depth:z, w:wRot});
+    }
+    return out;
+  }
+
+  function renderPoints(pts){
+    const order=edges.map(e=>({e,d:(pts[e[0]].depth+pts[e[1]].depth)/2}))
+                     .sort((p,q)=>p.d-q.d);
+    ctx.lineCap='round';
+    for(const {e} of order){
+      const A=pts[e[0]], B=pts[e[1]];
+      const grad=ctx.createLinearGradient(A.x,A.y,B.x,B.y);
+      grad.addColorStop(0,wColor(A.w));
+      grad.addColorStop(1,wColor(B.w));
+      const avgW=(A.w+B.w)/2;
+      const t=Math.max(0,Math.min(1,(avgW+1.5)/3));
+      ctx.strokeStyle=grad;
+      ctx.lineWidth=1.4+2.2*t;
+      ctx.globalAlpha=0.62+0.38*t;
+      ctx.shadowColor=wColor(avgW);
+      ctx.shadowBlur=10+16*t;
+      ctx.beginPath(); ctx.moveTo(A.x,A.y); ctx.lineTo(B.x,B.y); ctx.stroke();
+    }
+    ctx.shadowBlur=12; ctx.globalAlpha=1;
+    for(const P of pts){
+      const t=Math.max(0,Math.min(1,(P.w+1.5)/3));
+      ctx.fillStyle=wColor(P.w);
+      ctx.shadowColor=wColor(P.w);
+      ctx.beginPath(); ctx.arc(P.x,P.y,2.4+3.2*t,0,Math.PI*2); ctx.fill();
+    }
+    ctx.shadowBlur=0; ctx.globalAlpha=1;
+  }
+
+  function frame(now){
+    const dt=Math.min((now-last)/1000,0.05); last=now;
+    if(playing){
+      if(planes.xw) aXW+=speed*dt;
+      if(planes.yw) aYW+=speed*dt;
+      if(planes.zw) aZW+=speed*dt;
+      if(planes.xy) aXY+=speed*dt;
+      if(planes.xz) aXZ+=speed*dt;
+      if(planes.yz) aYZ+=speed*dt;
+    }
+
+    // 背景
+    const g=ctx.createRadialGradient(W/2,H*0.46,0,W/2,H*0.46,Math.max(W,H)*0.7);
+    g.addColorStop(0,'#131A2E'); g.addColorStop(1,'#0B0F1A');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+
+    const s=Math.min(W,H)*0.66;
+    renderPoints(project(yaw,pitch,false,W/2,H/2,s));
+    requestAnimationFrame(frame);
+  }
+
+  // ---- 拖曳旋轉 ----
+  const hint=document.getElementById('hint');
+  let hintGone=false;
+  function down(x,y){drag=true;lx=x;ly=y; if(!hintGone){hint.style.opacity=0;hintGone=true;}}
+  function move(x,y){
+    if(!drag) return;
+    yaw+=(x-lx)*0.01; pitch+=(y-ly)*0.01;
+    pitch=Math.max(-1.4,Math.min(1.4,pitch));
+    lx=x; ly=y;
+  }
+  function up(){drag=false;}
+  canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);down(e.clientX,e.clientY);});
+  canvas.addEventListener('pointermove',e=>move(e.clientX,e.clientY));
+  canvas.addEventListener('pointerup',up);
+  canvas.addEventListener('pointercancel',up);
+
+  // ---- 控制 ----
+  document.querySelectorAll('.btn[data-plane]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const p=b.dataset.plane;
+      planes[p]=!planes[p];
+      b.classList.toggle('on',planes[p]);
+    });
+  });
+  const playBtn=document.getElementById('play');
+  const playIcon=document.getElementById('playIcon');
+  playBtn.addEventListener('click',()=>{
+    playing=!playing;
+    playIcon.innerHTML = playing
+      ? '<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>'
+      : '<path d="M7 4l13 8-13 8z"/>';
+  });
+  document.getElementById('speed').addEventListener('input',e=>{
+    speed=(e.target.value/100)*1.1;
+  });
+  document.getElementById('reset').addEventListener('click',()=>{
+    yaw=-0.5; pitch=-0.35;
+  });
+
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
