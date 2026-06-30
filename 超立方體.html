@@ -303,8 +303,9 @@
     g.addColorStop(0,'#131A2E'); g.addColorStop(1,'#0B0F1A');
     ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
 
+    const ph=document.getElementById('panel').offsetHeight+32;
     const s=Math.min(W,H)*0.66;
-    renderPoints(project(yaw,pitch,false,W/2,H/2,s));
+    renderPoints(project(yaw,pitch,false,W/2,(H-ph)/2,s));
     requestAnimationFrame(frame);
   }
 
